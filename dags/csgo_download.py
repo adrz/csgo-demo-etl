@@ -201,9 +201,10 @@ with dag:
         task_id="download_demos",
         python_callable=download_demos,
     )
+    # noqa
     cmd_extract = (
         "cd /tmp/{{ ds }} && find . -name '*.rar' -exec unrar x -ad {} \;" % locals()
-    )
+    )  # noqa
     ExtractRar = BashOperator(
         task_id="extract_rar",
         bash_command=cmd_extract,
@@ -221,7 +222,7 @@ with dag:
     cmd_clean_up = (
         "cd /tmp/{{ ds }} && rm -rf /tmp/{{ ds }}/*.rar && find . -type f -name '*.dem' -exec rm {} +"
         % locals()
-    )
+    )  # noqa
     CleanUp = BashOperator(
         task_id="clean_up",
         bash_command=cmd_clean_up,

@@ -11,7 +11,7 @@ BASE_URL_MATCH = (
     "{base_url}/stats/matches?startDate={ds}&endDate={ds}&rankingFilter=Top50"
 )
 
-regex = re.compile("group-(\d+) first")
+regex = re.compile("group-(\d+) first")  # noqa: W605
 
 
 def get_match_list(ds):
@@ -53,6 +53,6 @@ def download_demo(ds, url):
     with open("/tmp/test.txt", "w") as f:
         f.write("salut it's working")
     filename = Path(f"/tmp/{ds}/{file_name}.rar")
-    filename.mkdir(parents=True, exist_ok=True)
-    with open(filename, "wb") as f:
+    filename.parent.mkdir(parents=True, exist_ok=True)
+    with open(filename.as_posix(), "wb") as f:
         f.write(response.content)

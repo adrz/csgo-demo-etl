@@ -25,7 +25,7 @@ def slack_fail_alert(context):
         *Execution Time*: {convert_datetime(context.get('execution_date'))}
         <{context.get('task_instance').log_url}|*Logs*>
     """
-    # see https://towardsdatascience.com/integrating-docker-airflow-with-slack-to-get-daily-reporting-c462e7c8828a#:~:text=The%20Slack%20Webhook%20Operator%20can,some%20trigger%20condition%20is%20met.
+    # see https://towardsdatascience.com/integrating-docker-airflow-with-slack-to-get-daily-reporting-c462e7c8828a#:~:text=The%20Slack%20Webhook%20Operator%20can,some%20trigger%20condition%20is%20met. # noqa
     slack_alert = SlackWebhookOperator(
         task_id="slack_failer",
         message=slack_msg,
