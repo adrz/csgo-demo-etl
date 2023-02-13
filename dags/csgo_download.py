@@ -163,8 +163,8 @@ def save_to_db(ds):
 
 args = {
     "owner": "airflow",
-    # "depends_on_past": True,
-    # "wait_for_downstream": True,
+    "depends_on_past": True,
+    "wait_for_downstream": True,
     "email": ["airflow@example.com"],
     "on_failure_callback": slack_fail_alert,
     "email_on_failure": False,
