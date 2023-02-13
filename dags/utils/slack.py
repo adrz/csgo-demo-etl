@@ -48,10 +48,11 @@ def slack_success_alert(ds, ti):
     urls_demo = ti.xcom_pull(key="urls_demo")
     webhook_token_url = BaseHook.get_connection(SLACK_CONN_ID).password
     channel = BaseHook.get_connection(SLACK_CONN_ID).login
+    n_demos = len(urls_demo)
     slack_msg = f"""
         :coche_blanche: Task Success.
         *Execution Time*: {ds}
-        *Demo Urls*: {urls_demo}
+        *Demo Urls*: n_demos
     """
     # see https://towardsdatascience.com/integrating-docker-airflow-with-slack-to-get-daily-reporting-c462e7c8828a#:~:text=The%20Slack%20Webhook%20Operator%20can,some%20trigger%20condition%20is%20met. # noqa
     slack_alert = SlackWebhookOperator(
