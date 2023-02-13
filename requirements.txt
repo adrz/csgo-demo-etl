@@ -1,0 +1,5 @@
+awpy==1.2.2
+peewee==3.15.4
+apache-airflow-providers-http
+apache-airflow-providers-slack
+apache-airflow-providers-slack[http]
