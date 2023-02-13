@@ -180,6 +180,7 @@ dag = DAG(
     description="use case of python operator in airflow",
     start_date=datetime.datetime(2023, 1, 1),
     catchup=True,
+    max_active_runs=8,
 )
 
 
