@@ -1,0 +1,167 @@
+version: '3'
+x-airflow-common:
+  &airflow-common
+  image: airflow-custom:latest
+  environment:
+    &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/postgres
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres@postgres/postgres
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://postgres:postgres@postgres/postgres
+    AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+    AIRFLOW__SCHEDULER__STATSD_ON: 'true'
+    AIRFLOW__SCHEDULER__STATSD_HOST: statsd-exporter
+    AIRFLOW__SCHEDULER__STATSD_PORT: 8125
+    AIRFLOW__SCHEDULER__STATSD_PREFIX: airflow
+
+  volumes:
+    - ./dags:/opt/airflow/dags/
+    - ./airflow.cfg:/opt/airflow/airflow.cfg
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - /tmp:/tmp
+
+services:
+    airflow-init:
+        << : *airflow-common
+        container_name: airflow-init
+        entrypoint: /bin/bash
+        command:
+        - -c
+        - airflow users list || ( airflow db init &&
+            airflow users create
+            --role Admin
+            --username admin
+            --password password
+            --email airflow@airflow.com
+            --firstname first
+            --lastname last )
+        restart: on-failure
+
+    redis:
+        image: redis:latest
+        expose:
+          - 6379
+        healthcheck:
+          test: ["CMD", "redis-cli", "ping"]
+          interval: 5s
+          timeout: 30s
+          retries: 50
+        restart: always
+
+
+    postgres:
+        image: postgres:13
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        volumes:
+          - ./postgres-db-volume:/var/lib/postgresql/data
+        ports:
+          - 5432:5432
+        healthcheck:
+          test: ["CMD", "pg_isready", "-U", "postgres"]
+          interval: 5s
+          retries: 5
+        restart: always
+
+
+    webserver:
+        << : *airflow-common
+        container_name: airflow-webserver
+        restart: always
+        depends_on:
+            - postgres
+            - redis
+            - statsd-exporter
+            - airflow-init
+        ports:
+            - "8080:8080"
+        command: airflow webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+
+    flower:
+        << : *airflow-common
+        container_name: airflow-flower
+        restart: always
+        depends_on:
+            - redis
+            - statsd-exporter
+            - airflow-init
+        ports:
+            - "5555:5555"
+        command: airflow celery flower
+
+    scheduler:
+        << : *airflow-common
+        container_name: airflow-scheduler
+        restart: always
+        depends_on:
+            - postgres
+            - webserver
+            - airflow-init
+        command: airflow scheduler
+
+    worker:
+        << : *airflow-common
+        container_name: airflow-worker
+        restart: always
+        sysctls:
+            - net.ipv4.tcp_keepalive_time=200
+            - net.ipv4.tcp_keepalive_intvl=200
+            - net.ipv4.tcp_keepalive_probes=5
+        depends_on:
+            - redis
+            - scheduler
+            - airflow-init
+        ports:
+            - "8793"
+        platform: linux/arm64
+        command: airflow celery worker
+
+    statsd-exporter:
+        image: prom/statsd-exporter
+        container_name: airflow-statsd-exporter
+        command: "--statsd.listen-udp=:8125 --web.listen-address=:9102"
+        ports:
+            - 9123:9102
+            - 8125:8125/udp
+    
+    prometheus:
+        image: prom/prometheus
+        container_name: airflow-prometheus
+        user: "0"
+        ports:
+            - 9090:9090
+        volumes:
+            - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./prometheus/volume:/prometheus
+        
+    grafana:
+        image: grafana/grafana:7.1.5
+        container_name: airflow-grafana
+        environment:
+            GF_SECURITY_ADMIN_USER: admin
+            GF_SECURITY_ADMIN_PASSWORD: password
+            GF_PATHS_PROVISIONING: /grafana/provisioning
+        ports:
+            - 3000:3000
+        # volumes:
+        #     - ./grafana/volume/data:/grafana
+        #     - ./grafana/volume/datasources:/grafana/datasources
+        #     - ./grafana/volume/dashboards:/grafana/dashboards
+        #     - ./grafana/volume/provisioning:/grafana/provisioning
+
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
