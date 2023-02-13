@@ -166,7 +166,6 @@ args = {
     "owner": "airflow",
     "email": ["airflow@example.com"],
     "on_failure_callback": slack_fail_alert,
-    "on_success_callback": slack_success_alert,
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
@@ -228,11 +227,16 @@ with dag:
         task_id="clean_up",
         bash_command=cmd_clean_up,
     )
+    SlackSuccess = PythonOperator(
+        task_id="slack_success",
+        python_callable=slack_success_alert,
+    )
     (
         MatchInfoTask
         >> MatchMoreInfoTask
         >> DemoUrlTask
         >> DownLoadDemos
+        >> SlackSuccess
         >> ExtractRar
         >> CreateDB
         >> SaveToDb
