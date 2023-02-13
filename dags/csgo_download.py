@@ -181,6 +181,7 @@ dag = DAG(
     description="use case of python operator in airflow",
     start_date=datetime.datetime(2022, 12, 1),
     catchup=True,
+    max_active_tasks=3,
 )
 
 
@@ -188,26 +189,18 @@ with dag:
     MatchInfoTask = PythonOperator(
         task_id="retrieve_match_list",
         python_callable=retrieve_match_list,
-        pool="request_pool_hltv",
-        task_concurrency=2,
     )
     MatchMoreInfoTask = PythonOperator(
         task_id="retrieve_match_more_info",
         python_callable=retrieve_match_more_info,
-        pool="request_pool_hltv",
-        task_concurrency=2,
     )
     DemoUrlTask = PythonOperator(
         task_id="retrieve_match_demo_url",
         python_callable=retrieve_match_demo_url,
-        pool="request_pool_hltv",
-        task_concurrency=2,
     )
     DownLoadDemos = PythonOperator(
         task_id="download_demos",
         python_callable=download_demos,
-        pool="request_pool_hltv",
-        task_concurrency=2,
     )
     # noqa
     cmd_extract = (
@@ -216,8 +209,6 @@ with dag:
     ExtractRar = BashOperator(
         task_id="extract_rar",
         bash_command=cmd_extract,
-        pool="download_pool_hltv",
-        task_concurrency=3,
         # bash_command="cd /tmp/ && unrar x -ad *.rar",
     )
 
@@ -228,8 +219,6 @@ with dag:
     SaveToDb = PythonOperator(
         task_id="save_to_db",
         python_callable=save_to_db,
-        pool="golang_pool_hltv",
-        task_concurrency=8,
     )
     cmd_clean_up = (
         "cd /tmp/{{ ds }} && rm -rf /tmp/{{ ds }}/*.rar && find . -type f -name '*.dem' -exec rm {} +"
