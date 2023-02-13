@@ -52,7 +52,7 @@ def slack_success_alert(context):
         channel = BaseHook.get_connection(SLACK_CONN_ID).login
         n_demos = len(urls_demo)
         slack_msg = f"""
-            :coche_blanche: Task Success.        
+            :cloche_blanche: Task Success.        
             *Task*: {context.get('task_instance').task_id}
             *Dag*: {context.get('task_instance').dag_id}
             *Demo Urls*: {urls_demo}
