@@ -56,7 +56,8 @@ def slack_success_alert(context):
         *Dag*: {context.get('task_instance').dag_id}
         *Demo Urls*: {urls_demo}
     """
-    if context.get("task_instance").task_id == "download_demo":
+    print(context.get("task_instance").task_id)
+    if context.get("task_instance").task_id == "download_demos":
 
         # see https://towardsdatascience.com/integrating-docker-airflow-with-slack-to-get-daily-reporting-c462e7c8828a#:~:text=The%20Slack%20Webhook%20Operator%20can,some%20trigger%20condition%20is%20met. # noqa
         slack_alert = SlackWebhookOperator(
