@@ -49,7 +49,6 @@ def slack_success_alert(context, ti):
     webhook_token_url = BaseHook.get_connection(SLACK_CONN_ID).password
     channel = BaseHook.get_connection(SLACK_CONN_ID).login
     if context.get("task_instance").task_id == "download_demo":
-
         slack_msg = f"""
             :coche_blanche: Task Success.
             *Task*: {context.get('task_instance').task_id}
