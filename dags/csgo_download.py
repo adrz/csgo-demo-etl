@@ -88,7 +88,7 @@ def create_db():
 
 
 def save_to_db(ds):
-    rar_files = list(Path("/tmp").glob("*.rar"))
+    rar_files = list(Path(f"/tmp/{ds}").glob("*.rar"))
     folders = [file.as_posix().replace(".rar", "") for file in rar_files]
     for folder in folders:
         demo_files = list(Path(folder).glob("*.dem"))
