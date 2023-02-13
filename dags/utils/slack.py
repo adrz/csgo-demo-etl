@@ -38,7 +38,7 @@ def slack_fail_alert(context):
     return slack_alert.execute(context=context)
 
 
-def slack_success_alert(context, ti):
+def slack_success_alert(ti):
     """Adapted from https://medium.com/datareply/integrating-slack-alerts-in-airflow-c9dcd155105
     Sends message to a slack channel.
        If you want to send it to a "user" -> use "@user",
