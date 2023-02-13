@@ -71,6 +71,7 @@ def retrieve_match_demo_url(ti):
 def download_demos(ds, ti):
     urls_demo = ti.xcom_pull(key="urls_demo")
     print(urls_demo)
+    Path(f"/tmp/{ds}").mkdir(parents=True, exist_ok=True)
     for url in urls_demo:
         download_demo(ds, url)
 
