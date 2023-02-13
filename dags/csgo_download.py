@@ -24,7 +24,7 @@ from utils.models import (
     WeaponFires,
     database_proxy,
 )
-from utils.slack import slack_fail_alert
+from utils.slack import slack_fail_alert, slack_success_alert
 
 db_info = dict(
     database="csgo",
@@ -166,6 +166,7 @@ args = {
     "owner": "airflow",
     "email": ["airflow@example.com"],
     "on_failure_callback": slack_fail_alert,
+    "on_success_callback": slack_success_alert,
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
