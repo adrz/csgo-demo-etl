@@ -1,5 +1,6 @@
 import re
 import time
+from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
@@ -45,11 +46,13 @@ def get_match_demo_url(url):
     return None
 
 
-def download_demo(url):
+def download_demo(ds, url):
     time.sleep(5)
     response = requests.get(url)
     file_name = url.split("/")[-1]
     with open("/tmp/test.txt", "w") as f:
         f.write("salut it's working")
-    with open(f"/tmp/{file_name}.rar", "wb") as f:
+    filename = Path(f"/tmp/{ds}/{file_name}.rar")
+    filename.mkdir(parents=True, exist_ok=True)
+    with open(filename, "wb") as f:
         f.write(response.content)

@@ -68,11 +68,11 @@ def retrieve_match_demo_url(ti):
     ti.xcom_push(key="urls_demo", value=urls_demo)
 
 
-def download_demos(ti):
+def download_demos(ds, ti):
     urls_demo = ti.xcom_pull(key="urls_demo")
     print(urls_demo)
     for url in urls_demo:
-        download_demo(url)
+        download_demo(ds, url)
 
 
 def create_db():
@@ -201,9 +201,12 @@ with dag:
         task_id="download_demos",
         python_callable=download_demos,
     )
+    cmd_extract = (
+        "cd /tmp/{{ ds }} && find . -name '*.rar' -exec unrar x -ad {} \;" % locals()
+    )
     ExtractRar = BashOperator(
         task_id="extract_rar",
-        bash_command='cd /tmp/ && find . -name "*.rar" -exec unrar x -ad {} \;',
+        bash_command=cmd_extract,
         # bash_command="cd /tmp/ && unrar x -ad *.rar",
     )
 
@@ -215,9 +218,13 @@ with dag:
         task_id="save_to_db",
         python_callable=save_to_db,
     )
+    cmd_clean_up = (
+        "cd /tmp/{{ ds }} && rm -rf /tmp/{{ ds }}/*.rar && find . -type f -name '*.dem' -exec rm {} +"
+        % locals()
+    )
     CleanUp = BashOperator(
         task_id="clean_up",
-        bash_command="cd /tmp/ && rm -rf /tmp/*.rar && find . -type f -name '*.dem' -exec rm {} +",
+        bash_command=cmd_clean_up,
     )
     (
         MatchInfoTask
