@@ -78,7 +78,7 @@ services:
         depends_on:
             - postgres
             - redis
-            - statsd-exporter
+            # - statsd-exporter
             - airflow-init
         ports:
             - "8080:8080"
