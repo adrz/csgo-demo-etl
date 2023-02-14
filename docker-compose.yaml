@@ -13,15 +13,15 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
-    AIRFLOW__SCHEDULER__STATSD_ON: 'true'
-    AIRFLOW__SCHEDULER__STATSD_HOST: statsd-exporter
-    AIRFLOW__SCHEDULER__STATSD_PORT: 8125
-    AIRFLOW__SCHEDULER__STATSD_PREFIX: airflow
+    # AIRFLOW__SCHEDULER__STATSD_ON: 'true'
+    # AIRFLOW__SCHEDULER__STATSD_HOST: statsd-exporter
+    # AIRFLOW__SCHEDULER__STATSD_PORT: 8125
+    # AIRFLOW__SCHEDULER__STATSD_PREFIX: airflow
 
   volumes:
     - ./dags:/opt/airflow/dags/
     - ./airflow.cfg:/opt/airflow/airflow.cfg
-    - ./logs:/opt/airflow/logs
+    # - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
     - /tmp:/tmp
 
@@ -89,17 +89,17 @@ services:
             timeout: 30s
             retries: 3
 
-    flower:
-        << : *airflow-common
-        container_name: airflow-flower
-        restart: always
-        depends_on:
-            - redis
-            - statsd-exporter
-            - airflow-init
-        ports:
-            - "5555:5555"
-        command: airflow celery flower
+    # flower:
+    #     << : *airflow-common
+    #     container_name: airflow-flower
+    #     restart: always
+    #     depends_on:
+    #         - redis
+    #         - statsd-exporter
+    #         - airflow-init
+    #     ports:
+    #         - "5555:5555"
+    #     command: airflow celery flower
 
     scheduler:
         << : *airflow-common
@@ -128,33 +128,33 @@ services:
         platform: linux/arm64
         command: airflow celery worker
 
-    statsd-exporter:
-        image: prom/statsd-exporter
-        container_name: airflow-statsd-exporter
-        command: "--statsd.listen-udp=:8125 --web.listen-address=:9102"
-        ports:
-            - 9123:9102
-            - 8125:8125/udp
+    # statsd-exporter:
+    #     image: prom/statsd-exporter
+    #     container_name: airflow-statsd-exporter
+    #     command: "--statsd.listen-udp=:8125 --web.listen-address=:9102"
+    #     ports:
+    #         - 9123:9102
+    #         - 8125:8125/udp
     
-    prometheus:
-        image: prom/prometheus
-        container_name: airflow-prometheus
-        user: "0"
-        ports:
-            - 9090:9090
-        volumes:
-            - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-            - ./prometheus/volume:/prometheus
+    # prometheus:
+    #     image: prom/prometheus
+    #     container_name: airflow-prometheus
+    #     user: "0"
+    #     ports:
+    #         - 9090:9090
+    #     volumes:
+    #         - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    #         - ./prometheus/volume:/prometheus
         
-    grafana:
-        image: grafana/grafana:7.1.5
-        container_name: airflow-grafana
-        environment:
-            GF_SECURITY_ADMIN_USER: admin
-            GF_SECURITY_ADMIN_PASSWORD: password
-            GF_PATHS_PROVISIONING: /grafana/provisioning
-        ports:
-            - 3000:3000
+    # grafana:
+    #     image: grafana/grafana:7.1.5
+    #     container_name: airflow-grafana
+    #     environment:
+    #         GF_SECURITY_ADMIN_USER: admin
+    #         GF_SECURITY_ADMIN_PASSWORD: password
+    #         GF_PATHS_PROVISIONING: /grafana/provisioning
+    #     ports:
+    #         - 3000:3000
         # volumes:
         #     - ./grafana/volume/data:/grafana
         #     - ./grafana/volume/datasources:/grafana/datasources
@@ -162,6 +162,6 @@ services:
         #     - ./grafana/volume/provisioning:/grafana/provisioning
 
 
-volumes:
-  prometheus_data: {}
-  grafana_data: {}
+# volumes:
+#   prometheus_data: {}
+#   grafana_data: {}
