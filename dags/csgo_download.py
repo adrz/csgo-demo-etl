@@ -103,7 +103,10 @@ def save_to_db(ds):
                 trade_time=3,
                 buy_style="hltv",
             )
-            df = demo_parser.parse(return_type="df")
+            try:
+                df = demo_parser.parse(return_type="df")
+            except AttributeError:
+                continue
             bomb_events = df["bombEvents"]
             bomb_events["matchID"] = folder_prefix
             bomb_events["ds"] = ds
@@ -169,8 +172,8 @@ args = {
     "on_success_callback": slack_success_alert,
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": datetime.timedelta(seconds=5),
+    "retries": 2,
+    "retry_delay": datetime.timedelta(seconds=15),
 }
 
 dag = DAG(
@@ -181,7 +184,7 @@ dag = DAG(
     description="use case of python operator in airflow",
     start_date=datetime.datetime(2022, 1, 1),
     catchup=True,
-    max_active_tasks=3,
+    max_active_tasks=4,
 )
 
 
