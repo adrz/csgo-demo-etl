@@ -24,7 +24,7 @@ from utils.models import (
     WeaponFires,
     database_proxy,
 )
-from utils.slack import slack_fail_alert
+from utils.slack import slack_fail_alert, slack_success_alert
 
 db_info = dict(
     database="csgo",
@@ -68,11 +68,12 @@ def retrieve_match_demo_url(ti):
     ti.xcom_push(key="urls_demo", value=urls_demo)
 
 
-def download_demos(ti):
+def download_demos(ds, ti):
     urls_demo = ti.xcom_pull(key="urls_demo")
     print(urls_demo)
+    Path(f"/tmp/{ds}").mkdir(parents=True, exist_ok=True)
     for url in urls_demo:
-        download_demo(url)
+        download_demo(ds, url)
 
 
 def create_db():
@@ -88,7 +89,7 @@ def create_db():
 
 
 def save_to_db(ds):
-    rar_files = list(Path("/tmp").glob("*.rar"))
+    rar_files = list(Path(f"/tmp/{ds}").glob("*.rar"))
     folders = [file.as_posix().replace(".rar", "") for file in rar_files]
     for folder in folders:
         demo_files = list(Path(folder).glob("*.dem"))
@@ -102,7 +103,10 @@ def save_to_db(ds):
                 trade_time=3,
                 buy_style="hltv",
             )
-            df = demo_parser.parse(return_type="df")
+            try:
+                df = demo_parser.parse(return_type="df")
+            except AttributeError:
+                continue
             bomb_events = df["bombEvents"]
             bomb_events["matchID"] = folder_prefix
             bomb_events["ds"] = ds
@@ -163,14 +167,13 @@ def save_to_db(ds):
 
 args = {
     "owner": "airflow",
-    "depends_on_past": True,
-    "wait_for_downstream": True,
     "email": ["airflow@example.com"],
     "on_failure_callback": slack_fail_alert,
+    "on_success_callback": slack_success_alert,
     "email_on_failure": False,
     "email_on_retry": False,
-    "retries": 1,
-    "retry_delay": datetime.timedelta(seconds=5),
+    "retries": 2,
+    "retry_delay": datetime.timedelta(seconds=15),
 }
 
 dag = DAG(
@@ -179,8 +182,9 @@ dag = DAG(
     schedule_interval="0 1 * * *",
     dagrun_timeout=datetime.timedelta(minutes=120 * 2),
     description="use case of python operator in airflow",
-    start_date=datetime.datetime(2023, 2, 1),
+    start_date=datetime.datetime(2022, 1, 1),
     catchup=True,
+    max_active_tasks=4,
 )
 
 
@@ -201,9 +205,13 @@ with dag:
         task_id="download_demos",
         python_callable=download_demos,
     )
+    # noqa
+    cmd_extract = (
+        "cd /tmp/{{ ds }} && find . -name '*.rar' -exec unrar x -ad {} \;" % locals()
+    )  # noqa
     ExtractRar = BashOperator(
         task_id="extract_rar",
-        bash_command='cd /tmp/ && find . -name "*.rar" -exec unrar x -ad {} \;',
+        bash_command=cmd_extract,
         # bash_command="cd /tmp/ && unrar x -ad *.rar",
     )
 
@@ -215,9 +223,13 @@ with dag:
         task_id="save_to_db",
         python_callable=save_to_db,
     )
+    cmd_clean_up = (
+        "cd /tmp/{{ ds }} && rm -rf /tmp/{{ ds }}/*.rar && find . -type f -name '*.dem' -exec rm {} +"
+        % locals()
+    )  # noqa
     CleanUp = BashOperator(
         task_id="clean_up",
-        bash_command="cd /tmp/ && rm -rf /tmp/*.rar && find . -type f -name '*.dem' -exec rm {} +",
+        bash_command=cmd_clean_up,
     )
     (
         MatchInfoTask

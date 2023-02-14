@@ -1,0 +1,28 @@
+name: Deploy job
+on:
+  push:
+    branches:
+      - main
+      - feature/*
+
+jobs:
+  deploy-to-prod:
+    runs-on: [ubuntu-latest]
+    name: "Deploy job"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: "Get branch name"
+        id: get_branch_name
+        run: echo ::set-output name=branch::${GITHUB_REF#refs/heads/}
+      - name: "Deploy"
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ~/csgo-demo-etl
+            git checkout ${{ steps.get_branch_name.outputs.branch }}
+            git pull
