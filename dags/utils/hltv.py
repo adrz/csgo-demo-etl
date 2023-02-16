@@ -7,9 +7,7 @@ from bs4 import BeautifulSoup
 
 BASE_URL = "https://www.hltv.org"
 
-BASE_URL_MATCH = (
-    "{base_url}/stats/matches?startDate={ds}&endDate={ds}&rankingFilter=Top50"
-)
+BASE_URL_MATCH = "{base_url}/stats/matches?startDate=2022-07-02&endDate=2022-07-02&rankingFilter=Top50"
 
 regex = re.compile("group-(\d+) first")  # noqa: W605
 

@@ -5,6 +5,7 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from awpy import DemoParser
+from peewee import PostgresqlDatabase
 from playhouse.pool import PooledPostgresqlDatabase
 from utils.hltv import (
     download_demo,
@@ -36,10 +37,8 @@ db_info = dict(
 )
 
 database_proxy.initialize(
-    PooledPostgresqlDatabase(
+    PostgresqlDatabase(
         **db_info,
-        max_connections=5,
-        timeout=5,
     )
 )
 
@@ -184,7 +183,7 @@ dag = DAG(
     description="use case of python operator in airflow",
     start_date=datetime.datetime(2022, 1, 1),
     catchup=True,
-    max_active_tasks=4,
+    max_active_tasks=2,
 )
 
 
