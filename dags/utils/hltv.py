@@ -11,7 +11,7 @@ BASE_URL_MATCH = (
     "{base_url}/stats/matches?startDate={ds}&endDate={ds}&rankingFilter=Top50"
 )
 
-regex = re.compile("group-(\d+) first")  # noqa: W605
+regex = re.compile("group-(\d+) first")  # noqa:W605
 
 
 def get_match_list(ds):
