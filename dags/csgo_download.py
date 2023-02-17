@@ -181,7 +181,7 @@ dag = DAG(
     schedule_interval="0 1 * * *",
     dagrun_timeout=datetime.timedelta(minutes=120 * 2),
     description="use case of python operator in airflow",
-    start_date=datetime.datetime(2022, 1, 1),
+    start_date=datetime.datetime(2021, 1, 1),
     catchup=True,
     max_active_tasks=2,
 )
