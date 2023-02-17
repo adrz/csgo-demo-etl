@@ -1,12 +1,13 @@
 import datetime
+import os
 from pathlib import Path
 
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from awpy import DemoParser
+from dotenv import load_dotenv
 from peewee import PostgresqlDatabase
-from playhouse.pool import PooledPostgresqlDatabase
 from utils.hltv import (
     download_demo,
     get_match_demo_url,
@@ -27,10 +28,12 @@ from utils.models import (
 )
 from utils.slack import slack_fail_alert, slack_success_alert
 
+load_dotenv()
+
 db_info = dict(
     database="csgo",
     user="postgres",
-    password="postgres",
+    password=os.getenv("POSTGRES_PASSWORD"),
     host="postgres",
     port=5432,
     autorollback=True,
