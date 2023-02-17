@@ -188,7 +188,6 @@ dag = DAG(
     start_date=datetime.datetime(2021, 1, 1),
     catchup=True,
     max_active_tasks=4,
-    wait_for_downstream=True,
 )
 
 
