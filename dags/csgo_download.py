@@ -47,6 +47,7 @@ database_proxy.initialize(
 
 
 def retrieve_match_list(ds, ti):
+    print(ds)
     urls = get_match_list(ds)
     ti.xcom_push(key="match_urls", value=urls)
     print(urls)
